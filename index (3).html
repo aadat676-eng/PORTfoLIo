@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<!--
+  ЧТО ЗАМЕНИТЬ: ссылку на проект (в карточке «Тихая музыка» вместо href="#"), а потом свои тексты и новые проекты.
+  ЦВЕТА: светлая тема — нежные rose/stone, тёмная — бордовая (rose-950/900). Хочешь другой цвет — замени слово rose на violet, sky, amber…
+  БОНУСЫ: тёмная тема, бургер-меню, плавное появление блоков, @apply-компоненты, авто-год в футере.
+-->
+<html lang="ru" class="scroll-smooth"> <!-- scroll-smooth: плавная прокрутка по якорям (#about) -->
+<head>
+<meta charset="UTF-8">
+<!-- viewport: без этой строки телефон рисует «уменьшенный десктоп» и md: не работает -->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Adat.rulit</title>
+<script>
+/* Тема: берём сохранённую, иначе системную. try/catch — вдруг хранилище недоступно */
+(function(){var t;try{t=localStorage.getItem('theme')}catch(e){}
+if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
+document.documentElement.dataset.theme=t;document.documentElement.classList.add('js')})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.4"></script>
+<style type="text/tailwindcss">
+/* Говорим Tailwind: префикс dark: включается, когда у <html> data-theme="dark" */
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+/* БОНУС @apply: собираем повторяющиеся наборы классов в одно имя.
+   @layer components — чтобы обычные классы в HTML могли их переопределять */
+@layer components {
+  .card  { @apply rounded-2xl border border-rose-100 bg-white p-6 dark:border-rose-900 dark:bg-rose-900/40; }
+  .pill  { @apply rounded-full bg-rose-100 px-3 py-1 text-sm dark:bg-rose-800/50; }
+  .btn   { @apply inline-flex items-center gap-2 rounded-lg px-6 py-3 font-medium transition; }
+  .btn-primary { @apply bg-rose-300 text-rose-950 hover:bg-rose-200; }
+  .btn-ghost   { @apply border border-rose-200 hover:bg-rose-100 dark:border-rose-800 dark:hover:bg-rose-800/50; }
+  .h2 { @apply text-3xl font-bold text-stone-800 dark:text-white; }
+}
+</style>
+<style>
+/* Отступы под «чёлку» и системные панели телефона (на десктопе = 0) */
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bar:rgb(255 241 242/.85)}
+:root[data-theme=dark]{--bar:rgb(76 5 25/.85);color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+.bar{background:var(--bar);backdrop-filter:blur(8px)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bar);backdrop-filter:blur(8px)}
+/* БОНУС: плавное появление. Класс .js ставится скриптом, поэтому без JS всё остаётся видимым */
+.js .reveal{opacity:0;transform:translateY(16px);transition:opacity .6s,transform .6s}
+.js .reveal.show{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.js .reveal{opacity:1;transform:none;transition:none}}
+</style>
+</head>
+
+<!-- Цвет текста и фона заданы для светлой и тёмной темы: dark:… работает только в тёмной -->
+<body class="bg-rose-50 text-stone-600 dark:bg-rose-950 dark:text-rose-100 antialiased">
+
+<!-- ШАПКА. sticky = прилипает при прокрутке; z-20 = лежит поверх контента -->
+<header class="bar sticky z-20 border-b border-rose-100 dark:border-rose-900" style="top:env(safe-area-inset-top,0px)">
+  <!-- Контейнер: max-w-5xl ограничивает ширину, mx-auto центрирует, px-6 — поля по бокам.
+       FLEX: items-center — по центру вертикально, justify-between — логотип и кнопки по краям -->
+  <div class="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
+    <a href="#hero" class="font-bold text-stone-800 dark:text-white">Adat<span class="text-rose-600 dark:text-rose-300">.rulit</span></a>
+    <!-- hidden md:flex: на телефоне скрыто, от 768px — flex-ряд -->
+    <nav class="hidden md:flex gap-6 text-sm">
+      <a href="#about" class="hover:text-rose-600 dark:hover:text-rose-300">Обо мне</a>
+      <a href="#skills" class="hover:text-rose-600 dark:hover:text-rose-300">Навыки</a>
+      <a href="#projects" class="hover:text-rose-600 dark:hover:text-rose-300">Проекты</a>
+    </nav>
+    <div class="flex items-center gap-2">
+      <button id="theme" aria-label="Сменить тему" class="size-9 rounded-lg border border-rose-200 dark:border-rose-800">🌙</button>
+      <button id="burger" aria-label="Меню" aria-expanded="false" class="md:hidden size-9 rounded-lg border border-rose-200 dark:border-rose-800">☰</button>
+    </div>
+  </div>
+  <!-- Мобильное меню: атрибут hidden скрывает, скрипт его переключает; md:hidden — на десктопе не нужно -->
+  <nav id="menu" hidden class="md:hidden grid gap-3 px-6 py-4 border-t border-rose-100 dark:border-rose-900">
+    <a href="#about">Обо мне</a><a href="#skills">Навыки</a><a href="#projects">Проекты</a>
+  </nav>
+</header>
+
+<main>
+
+<!-- HERO. На телефоне колонка (текст над кругом), от md — ряд: flex-col md:flex-row -->
+<section id="hero" class="py-20 md:py-28">
+  <div class="max-w-5xl mx-auto px-6 flex flex-col md:flex-row items-center gap-12">
+    <div class="md:w-1/2 reveal"> <!-- md:w-1/2 — половина ширины, но только от 768px -->
+      <!-- Бейдж: animate-pulse мигает, rounded-full делает круг -->
+      <p class="inline-flex items-center gap-2 rounded-full border border-rose-100 dark:border-rose-800 px-3 py-1 text-sm">
+        <span class="size-2 rounded-full bg-emerald-500 animate-pulse"></span>Учусь и пробую новое
+      </p>
+      <!-- Адаптивный шрифт: text-4xl на телефоне, md:text-6xl на десктопе -->
+      <h1 class="mt-5 text-4xl md:text-6xl font-extrabold tracking-tight text-stone-800 dark:text-white">
+        Привет, я <span class="bg-linear-to-r from-rose-500 to-fuchsia-500 bg-clip-text text-transparent">Адат</span>
+      </h1>
+      <p class="mt-4 text-lg">Я учусь делать сайты. Занимаюсь всего месяц, но уже сделал свой первый проект. Мне очень нравится, когда код оживает!</p>
+      <!-- flex-wrap: если кнопки не помещаются, переносятся на новую строку -->
+      <div class="mt-8 flex flex-wrap gap-4">
+        <a href="#projects" class="btn btn-primary">Мои проекты</a>
+      </div>
+    </div>
+    <!-- Твоё фото вшито прямо в страницу как base64 (data:). Обычно картинку кладут в папку img/ и пишут src="img/me.jpg" -->
+    <div class="md:w-1/2 flex justify-center reveal">
+      <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDAwMDAgQDAwMEBAQFBgoGBgUFBgwICQcKDgwPDg4MDQ0PERYTDxAVEQ0NExoTFRcYGRkZDxIbHRsYHRYYGRj/2wBDAQQEBAYFBgsGBgsYEA0QGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBj/wAARCAEoASgDASIAAhEBAxEB/8QAHAAAAgIDAQEAAAAAAAAAAAAABAUDBgACBwEI/8QAPRAAAQQBAwIGAQIFAwEHBQEAAQACAxEEEiExBUEGEyJRYXGBMqEHFCNCkRWxwSQzUmJygtHwFhc0kvGy/8QAHAEAAgMBAQEBAAAAAAAAAAAAAwQBAgUABgcI/8QALBEAAgICAgECBgIDAAMAAAAAAAECAwQREiExE0EFIlFhcbEGFCMyMyQ0Qv/aAAwDAQACEQMRAD8A4z0UiLCgLBuY22b+FYWzta0ODSa/KrfTJ4/9NxmPBP8ASbVfSZx5QbLdab2PdeXu7kz9A4X/ADj+EOYp45iTocD2vYFFa4aBDmgcmwk8mS+OmOAo8g91MJ3NLYzBTrsCknJGlFjaJ0b2+l5JOxsbLNcrJABQAsEAUChmQZckfmDElLDtsP8AZTNwc+NusY8wcebCBJpBoonjmaHW9zaPI5pSCYfpbZ+lCIcxjBrxiB7VuVqYc5hDhA83/bSHzX1CcWEPaaA79tlmtxb62gtHcqCeXqbGDXiSgDvVIAdVEjtEpDeyskn4JfJDT+YYJL8tw+V6Hh7g+ib9+UCZZtVD1NI45tDZU88YqWHQB80URVlOY4M7YwBekdz7KL+ZZLLbZaA535SD+f0tIcSAdyS7kISfrONA3XG6iNx3P5RFQ34AyyYw8stMuVHEwEi7O1lAZPXcWMFr9IFXsqPm+I5XuIiIoE1Sr+T1OeeU+Y87bAJqrB33IzMn4xGHUOy95vi3G0BkWoke/dJJ/FzmudoDgTxuqm+d55J+VG6WyeU7DEritaMW/wCL3yfT0N8jr2dM5xdMdPsl78+Z16pn3yLQetzm1R+yvDZaAU1GKMi26cu2yZ2W/SfVZrm0Och+qwSB7KM3uFoe24P0iJISssl9SV0hcCTd/BUYe4/3m1rsDf8Aha97VgDmyZuQ5p/Ub5ReN1GaGTWx7h9FLHVyvBLpsAqWtoiN0oPkmXHH8WZkTa840eU4wfHJEw84nSBVXyubebf91LYSH0i0CWLXLyjUr/kGTD/6O0YPivAymgPm8s3wSnTOrxTCo5GSVy47UuBMyXsdWrYnsnOB13Jw3NcyTvvaSt+HLzE3cP8Akqa1cjtT8pvl6vJa4Dl3KjfMHRANa2jwudYfi8nIAfK4A7EHhPYOtNyJQA5hBO54SksSUX2b1HxOm5bgyzF2pgLGgho334Wr5mtaAHAG+5SB2S7QWCVtDer3IQ8uc6KLVK7Q3kEld6AX+0iwPne3cPDm90NNltqmu4GxvhUnqHiyJgc3HJeffsq3P13PlPmee4D2BpNVYMpd7MfM/kFOO+PlnUpep48ZaZZWjb9JdVrFxqTqUr5D5rnOruTaxNr4f9zFn/K1vqB0Pp+n/S8YiwfLbx9JljSFsrZNPBuj3Tbo/QsOXoOHK9xLnQMdX4TRnh7E0gkuJA7Gli3ZUVJo9Ri0tVx39EIsjOjL2OELSQQRZ5+1MMuJ+QJA3SSeOU1PhrFcQ4Nk9R5u1JH4ZjDg50sje1EbpaeVDQ9CrQ/6bO53ToxQF7gDsmMb3AEOks/KW42M7Ghb5ZsAb/CIY8EEu9W/+FlWWcnsbjXrwGhxrUOB2tStefLoDve/ZDxNo7hoHb2UhHGlwu90AnfsL+rvccZwDnbilQzFGMl4seY02Ar11ihiGxuO6oEvmDML2tdeq9j2WrhdoDbJxDZslzMQSUPMb24QHUOtCfHAlA1BtBx7LOoZ0MUTvNa4HYkFU/OznTZDtA2Jq1qVV8mZt96gvue5nUpPMLY5CaSyTLkdJ6yeK3K1c4atRHKjNGwByVowikjAuulN7NXS1w02oXEudd2TyptNbE73ta8bGHOojhFTQnNNkBFtKjIIH6fyi/KG9LwQ6hpKlSQB1tgzWuuyKWeW6gaq0YMc3dbcIuLp8koaGjYFdzSJjiyn0JHRk1p39wvDjuugCPhWhnRZLb6a27rw9H2dY9XN0o9dFn8MsfsVbyCNiLUboz//ABWZ/TH6do7/AOEA7BOotLST7K8bUxa34dKPsI3xOJoHZROYBsbP4Tl2LpHcn6Qk0IaAdJRI2IRtw5RWxcRvWy8BO5v8KR7S152UbhvaKnszZRaM1d1I2SjyQoCN7Wal2iFLQWJjqu9kdidVmxn6o5XWO1pNqN3dLPMoqHFMYpyp1vcWXBniN0kAD228bE3yErzeq5eQ7QZCIxsBfZJxK4DUDypRIXNAsfaqq4r2Gp/ELJLWzR8rwRrG3ZQumdrN3S8mkfrpxBHtShc8EfKNFaMi6xvs2dLewKxQrEVCLl2fTfh9jh4Y6dsKONH/AP5CdwNYC7VYcTz3VN6F4hih8P4UIjkcWwMF3sKATiLxCB/UfBQPseV4O+p8nr6n3LGb9KP4RYBHqeADqNc916Wva4G3EdwlLPEmO5zbj0kmhY4R0E8sztP62H1AsFUkbIuPkegnrYVpcY7eWb7bKVgBYNr37Glqxo17C1NECCfSN+OyWbCb6JIwGtI8v02ty312PfYKPzDrI0u25IUcsrYm6nPAN8DlQn9CoH1pzv5R3oGn3C5lndQyMeeQ24UdqVv8SddhiY6EHU8i/Zc4z8zWHkkkHuAt74dS1FuRm5uQlpIEzs+SfI1veS0+6WPle69wB2W7iDKTya7qFvrctqMdGBbY5MwNBNA39KVjA1pv/JUkbBo1AX733UgjsVRVuWgPDZBos3z7FS+QNHP4CIjxRQAG3yiY8Q0DdgnuFR2B4Y+xbHjF7qtG4/TPNk7gn2TTGwNUg9AIOytXTuhEMLnxnfikrdl8EaWP8OU/JVYeimtOkGtrTzB6NH6bYW9qA2Vlh6O7U0NFgGyT7ptjdOpmrSC7vtVpCWc5GtHArrXSKrJ0ZrW0GD7QM3TWAVp3G92rtlYmgFz2WDw1AfyLX7lgaqrKbLLGj5KXPgvZG46Oe3skr8ECSy1zTxuuh53TmshLRGLI3pVvKxGscSXcchN0ZGxPIxU3vRVnYAD/AEsNe6By+nVC7UCHdlb2YoLToF/dILqWMfJ1UXOI7bJ2F/Zl5OEnF9HPJ4tAIIsoJ7D+U9zICJiasJfNFQ9yVowsPHZeG4sWO9JpyjcaOyJki3NlDmqICOnsyJwcWeXa8J7bLzgrDupKGzXOO1rdryDfKiF8BehthcSSFgkBJ5Qr9TSfdT24d6XroxI228j4UplJx5ICLjaxbFha8ghYiKQjKt7O9dGxsB/hvCe92lxgYSb34RMWLLNkFsTXGPs6kP0Hw/1LI8O4MsUZ0ugY4G9qpWfF6T1JuE8+dGxjKDhf7Lxt80pM+2Yr1VB79kV7+Umjn0Pc0n4ddK9dIivp0eqOiG+yBxfCLnt81+YxhdZ2skKxYnTY8LCbC2cv0/3AVayMi5eEaHNNeSMtP6RsOdyt2t39Rr63RDsJ8lPDwd+LW8eIWQk058h2A9kjvfgs5o3ixY3wnzZgPikh8QZfT+m48ha71gEiyiOoOk6djl2RmBziLDQaAHsuXdf6u7InluTzGj9loYeK7Xt+BW69VryL87NOTkySS2NtjarmQ+nkB23sUdNM90Nl5c3mvYIBw1vsiyvUVxUVo8/bNyZBuXAbkV7KeCOhey1Bp52FnZEwtcAXEVe1BE2CSM0gHbZTRRgsIs8rdkLn/pYdk36f0t8sgGg18IM7FFdjdNDk+gOGAkBoNlOsXppcBfdOMboLmxBzobs909welRhwZ5LiQs23MXejZqxNeQTpXRmFwd5ZAA7d1ZYcBjGABpojuOEXiYLYXWxn+AmTYRQ9P4KwcnMc30alcI1oXY+I0M0+XdfuiTA3ywAyvgdke2Ag7Nq/ZbOgJ2I2Qlc2Q5rYhlidYGkkXwTSgdjsbKfSHWbKeSYnqPtyh345Flwsn4sK0bmmXTixJNitfG55bXYWVXMnp4EpLo7s/wDd5V2kiIFlu6W5cTXxkFp2TtF/YOcNlQOG2naPTe9JZ1HG1OAFDbgq1SY1SOdpFDeuEsy8ZhlpwvfY8rTrt9xSdWzn+b08ayGj0qvZWK4PcGDg8kLouXjaHOIj5337Kq9Sxrlc7gLUpu2eezsLa2kU6aNwJBCEMRB4T6bGtrnAV/ygX4/Pp/K0YWHlMjEafgWGMbkqIs3NJkYOfZCujrYcIynszbMdxB2U11/heHkqR0Zq6K0czur7Qu4NGCuVIymuu1EAQOFK39K5stGAz6ZgYmblNbO7Tq425WIXGfLHJrYeNwfZYhScvY0KoVa+aJ9HeGcxzPB3SgX6gMWPa/hHjNYIy3TpHJCrXhySJvhLpo8yz/LspoPwn3T8c58uiMNe4H2sBeHyrNSlv6s+j4lW6oP7L9B0fU8OPQ57ZJK/sYLtMcXqLpnkR9Jy3A8HTVhNOldIjxXCSYjWfYAAJ+0NuonNNdgLpYc8jb6HHKMRDjwvefMkgfC0H+9wC86hgSTYrjj5Do21bnsO9/COmgyZ8gGePVDdAHa0l6xlR9I6fkFhDbBodleluTSSKSl77Od+KeoTtAxhOJdG2t3KouZI0OO1uPsmnU5ny5z36y4uJcfZIcnU6zey9ljw4RSMW+abZDI8g/0zzzZUFu/tFlbCMizq590RFG4U0Nu/dOb0KNbIsaBxcHOFg8JnDjuOlxbY9gtcfGLj22327KwdK6fLI7SW2Cbr3QbLdIapp2wfB6bJNINNixemuVeOl9IijxmNMbi487I3o/h4OeHNArmvZWvF6eYLbpAHsF534hnN/LFm/iUxguT8izFwGtYLa8t5CaY2G1pYWsr3KPZAwNPpF/C3a0tLSWkUsh2zfTYy5x9kRx440/Sm8hgIJFBQzZ8cbC5zmt9tSXT9Wt1tnbo/8IVElJ9FVGchu+RjNz+26jdlRMdTifhVLM6lmn1Nd6QeEqmzeov3Ly13Y1VpqGNL6nKCRfv5zGcaLqtaPlgca8wEfBXNpup9Rj/7SWzprhRxda6mx5eH18VvSOsSX1JSS8HRXsDhQFg90uycamOINBV7D8UlrxHMHN23vcJ9B1SHMaCx4cD29lZVOL7LcmK5m6Xlrhe2xG9pZJju8lziSd+fhWSeJr2hzKDvndByQnS4UbrfavymK5uPk56a6Khl4j9J5IIoBVfOgd6hQdvRHsuh5mIHM2dp+uyrmdhbuY5riLuwKtaFNwrbTtFCycRwZsKBPdAyYfe6tXHKwWhpLxYb2SmTFaTw6geAtSu7owcjDTZWXYtNJ3J9il82NTyQNvZWyfDc5znAbcD3S6XGDXEFhPyU1C0yMjA6K46L1BoFKJ0ZsABOpMU25wrZCyQO1bA0mI2GNbiaYrdHpPuFu0WQBVIiSOm/pWsbXBtVsiqWxX0tM9iHr00Vi81ESA1VLFRsPBdH0/4M8P6/AvTJJYa8zFZvQ4rlWfpHh/E6TEfIEri43ZNrPBWZjyeAeiwtaXSfyUYpoutkS/rGR/rQ6O6B773LtP6R7lfLMu2Ttnt9bZ9JxZSdcUl7ILl0scGzggVYA/8AdeY2Tpa5mJCHSc6RvX2pp+iiZjZv59xN7gDavZFY8mLjVj4cbDJeqRw2ofaUS7LSsjx+XsXZ8mdLk4uHmNjg80+kjkLnv8QphiZA6ech8u2ovJVi6v1mTI8TTdS3Zj4zDGw+7u5XJvFHVpOo9UfK50jnE1q7UvQ/DMT51JiVtvy6K7nTkP8ASST7oRziWAuskjhTZBDibG47laxRB7Re69OukZ0vmZtHEXR2W7nseyNixgWgabIUuJjO1iwLugCn2Dgtv9FHi6tCstSDVVbAsDBke6iwgbUD3V/6B0WP0EjjcOI4UvQ+hxOaJJGl2+zvfZXDH6eyADT9ALAz87rjFmxj1KPbMxsUQhrY72HJR0cdiz+pbxRCi2iPpSmHT2NlYDlvsPKwgIcPf7Q8rJHGvNHyEa7nTaiewOJu/tWT2TGWnsWSYzHF1kuFe6GkxoCw2xvPc3ab+U2/V+61EDCNND4BTFcQvqlaycZrLEbSGnc0l78Z1lulpI5DjZCtUsMXlkEAgfuhJoIqcdNg+2ydhNnckyqT4jtOkxXYSybBLZLDC6+xV0MET4v0fp4PNISbDa+RtE7/ALpqFhXeinSYrmvOprgz/FoiDXEBIyQsqtuU6yMGNsXpFm69whTjgvPbsCrOWwkZDHCyzNBoa665PBR4HmAF+xHNhIYtcTg9u1dhwU9xJjPGLfsNgB8ITJa12iGXDG9NJJ/ACV5fTmvjJ2tvuLVlLLbxv8bqKbHD6DR6K3URs0yN7KHm9Ns/p1NbtpvYpTL03SSQBd7q9ZOKQ11taSN+Eoy8Vr7kc3b3Gy0arhayvbKZk9PbHH+k04cBJZ8Yazt2qzur1Ng/28jlKczDtzmmyLvYJ2u4Rtx9lMmxtLtO5BQUsFGhbR27q1S4TTs4O+zsgsnCAaLBqvbhOwtMq7DKrkQ6WgsABPOyCDC0WrHlYlx2G2lM0Wmx2TULNmDkY3F7FjgPMsG1i8m/pyWRtaxFM1n1z4H6jNN4E6TidLxWxvOHGJMmTcNFchWnD6SxxIa5zr3lnJ9TylvgLEjk/hz0dgYImuw4y8gbu2TXrfWMLpfTTEJBrOwaF8sy4btnv6v9n0OixuEYw86X6DJpcaGItMjYo2jezyqb1fxLBHE7D6U5jI79T6BLktyH9d6vIQBJHjHjtaOxPCMDmMbPJbnnce6nHjXB8rH2GnVxXbKX1rqUj4SQ86Wi7OwKoE5cZXOIBs2DyuwfxB6Dh9I6JDFAGON2a7LlpwZC/j03vttuvVYlicOSEWuQrbESTYt3yOyNw8MvNCMJhj9Kc55tjaG6YtwQ2NvljTp+eUzK9aBxq7BsTEa2w4EkdgrZ0PpjZpQ6RjwOxJQ/TOmea8OfxxXF/sr/ANI6U1sbXltD6pY2dmcV0aVVaXbC8HBEMIDG0DvwmTIiKsX2REGOWUAB+SimQ2SdIXm7bd+SZ3JdIFEOg3S8eN6Pf2RhjIaaBJCHlqgKtBjNvoHGe2BSN0xk91A5xYQ49/ZS5A0EkE7pdkzkDQ5xF1v7J6mOxyC2SzzgBwJLT2spe7Kk0jRR3qqUU79UYcJNRG2/ZZHFPMC1zm123TkYaDR4pEzpnvbRG5Hug3mUx7Eg87JnH0+dsevyC6h/b9LZ7/JFPY5pOx1BFjEj1F7CVwJLjTvUO54Ue5BJ5aapMXwNc1wABcN7GyEcKfqNgXvujR6OckweVlxfqI1IJ0ILtqdVUaR8zA4loqudQ5UWh47Hbm0RHJ6AnREyWWmjsADVKeBpa4aNt7tTCMO3Avfm1I2F0ZvTdDuqyLqQzgIkAJJ43W8kIJ4HxsvMJrS1ru9b/COdGS01qP7ILZXemJcmKyXFpcR2SfIiZ5hFENO6tE8JcN2/ZPslc2NYOje+1Itczm0ytzY4rTvQ7gf8pbPhgyucwaT8q0SY2mMteA759ktni5aBRPsnq7AUkVTKxxYa9ti7NBLZseMvcXNslWmeB7XUL4SyXG3PpG/KersFpwTKplYhF069r2VdyoXaDfYq85UINg8/KrObC5wcXEUPcJ6qZkZWOmmUzOb69wCsU/UGgSnk7rFoxe0eRvjxm0j6m8IdY6u/+H3R4YIC0DFY0P4HHKcY/RYJcjz89zp5jv6twPpBeD53N/h70YNDb/lGbkJ/G7W7U7Y17r5XlyfrTS+r/Z9DxuqYaWukFQwsYzZpA+tgpTDMYKgc1hJ2dVqGJrXPDS8Fvuey9yuosw4y0OsNG/wgwi2W73pCfqvhiPPZ/WldITuSSd1XupeBmY7PMhe7Ybi0fkeJpXZtgkMB2pWnHnbn9PaRT7G5AulpQttpSW+jp1a05I5g/o74GHa2gUvcbAbr9TbHdXXqeDRNNJaN0txcDzJtWlvO4Rv7ja2zo1o36bga5gQAP+7fZXPEx9EYBYNgN+UP07AjZEHAcD2TeJlEGqCx8m5yl2Uts0tI8YzU26/CnEJ06ufypY4wSKaKPuiWRaRTrKQlJtmfO0E0C7o0VDJi6iR78Jl5YNtIAPaytfKO4FWFMCkbmvBWOoYGSYz5beN1RutZeZiAh0UlcLrbw1wpzNzz2SrP6Vi5bXCSJpB233WrjXRg/m8GhRme0jijvEM8XqLLF97UbfFudF/2epovYndXrrP8Pmzan4lazu1oFKsx+GX40+jNgc0jh1LfonRb/qFlkdbBof4hdcicDJCxzPk7lGt/iZHO4x5WPoB7tSbq0uN0yZkseIzIa0/peNiq51XqPSM6IvZ0f+UyuNUEhDfstKdjiVy9hZ5LXejpuP13C6izVDLpcDxfO3KkdlgMtjiSDvta41idVnxJRTnFvF3urd03rxyGjUTZ2ItDsxOHaGKslSLs2VrzV9++1rYAE0DzyOUpxshslEu0kflNYHl4bbSfm6SrjroZ5e5MyAE6Q0gH/dFjGlDAXXdbLMeMl/YDk90xhx3PjAqx2KXskWUiOCEBoOkg/SM8stYfb7W/kaW2fT+Vq4uHFUgnOW/AHKW6SDQNoGSMlpLP82mExbZJsfCCcWNs/k7IkCzeuwCVg0AOBIKXZGOwnWfrfak0fLtXbkFKsidhFF3eyE3WmBlIVzweqyAXBKp2gEkNregmmRmxCqc13bbslM+XHJYcBV+6dgDlIWZMI0ufYIVdz4g4OsO4OwCsksjHE04Anv2STNGlriKJ97T1WxLIacSgdVaGyEhYp+sVvsBvyFi16/8AU8VmdWtH1H4Kr/7e9I1Bp/6VnI+E8fC6R2wLQPbukHgxw/8AoPo/6v8A8ZmwVohA/XpA2s7r5jkx3fNfd/s93jPVUH9l+iHKzf5LC3G9c/Kp/UupSZTyLB7/AKuU06/lXOGAjfsleF0vIz3AQtcRf6uAi1RS7H64qK5MBjhc4DWHX2IVz8NzSDFLQ46RtTgsg8LlseuZ1fHNo3EEOKfJjf8AmlNsuS7B2WRmtIJy42SNJtpIHsh8Xp1SXpIbd7I7QHRloJvsicWHyxRvbuVnyl7AHPjEmhi8toGn0n37I6GJhfRbytIQ0ij2345RcbdqBOyUmjOtm2bRxkEjdEMaH7OO/wArWIW0WaI/KIbRbqB39qXRiIzkeeSHtBbyFHJHpGuvtEhhA1A/uvSALvg/FojigKm0xVMxpJJA3/yhXtcx1GyOxTWWNp27H8IOWEs2Iv8AK6Cex2qzfQtfM5jfUACPc8oLLxsXNxyH01/+EwmYCDY4+EqzInhhLCXHuCVp07j2P1pSOX+L/CebEDLiXNHyfcLmmVG+OQslbThy08rv8+W+Jh80WLog7lVXrXReldUDn+W2OQ7hzBS9Bh5b8TOtoeto465lNO34KcdHGlwOzQRVJ3m+Ds7HmqFjJmDktNmlHDguh9Lo3NI+KpaErotaTB1QafaHfTbkLdJJCtePCWtGpln5KrXh7GfLnhjQCashXyLDdoALO3ZZeRJI0Iv2PcGHW/YgAHcD2T2CAEVXxus6f062glp2ThmC6Nocdgsmdm2CuyIx62K3wU08bIHLYQLbd9lYJschhBKTZjSNQHYX9q8O2dTbsR5DjpsmiOSRVpXPOGim81wjsuY6iNIr2KR5E25afqk/CsK7DSacVRuknzJBdh1EDbdHyuaWDcXwg5Ghztxf4TUY6KKQjyS9xcQCO+yS5zzG/wBBJIVnnxzI47UAfZKM7CcwWW1/yma9FJyK83PeXlriKC2yB5jAK2PP0os+JzH6G7fQQmJPbnRvcB9lPwRnXTZX+vRBgLWkV2WLbxBs7Q7m1i0av9Ty2ck7Xo+mPBRLfAXR2kx2cZlBx3P0rFkT+VjFwbQr/Kr/AIKjLvAHRiXWRjNINjZM+qvrGIPJ22tfOcnq6f5f7Pb4ndda+y/QlbA/qvUvLaCd63KuuFjYnS8VpOgOA3pLOi4jMbCdlO/W7vSh6jlPlaQHHfa74VV4GbG5vj7G/VvEzWRuZHsa2FUhOgzPzpS4u9WvuUjlhfkyaRu6633V48OdD/ksUTTD1n9lW1pR78nScKo9DJsIABbQcERGC7et/helumS2g+xUrADuAs+XbEJT2iZgDhxRHZEsYXNBBF/ShjZvbTv7AIuHVQcLscgqnETtkSRtOx7/AAi2MB9Ta+QVGwAjUK+kVGwVqFg9wArQiIWTNWwkGxRHegvXMo7g0p26qsb+4K8fVk0PlF4IBz7AZYwLqtPsgpI3dwCL7Jk9u1s4+AhpBuQ4WPlTGHYzVLQqliGktcHfdoGWBpN0352TeVjd9TRv3QksJqwCU1BtGlVYVjP6ZHPqb5bmnmxsq3ldGljtzA6xyCugSQW6nNv2tRPwopGkOYPsJquzQ6rtLRzR+NkxuNaqqyAOERjYokbonxRID3cKpX49HiJDhGFMzpTBdRivkI7yNIn1o+5WOndDxcd/mQRNYTVnlWnDwWve307DvXKKh6cAytAH0mmNC5tUDQ9wlJ3OQvfl9dEuJhRNZTtiQpnYw0kDtwFI2wf0hbF3a6KEu32Y0rJN7FGawMYTX4VT6vtGTqr8q257iWuDhffdVDrYBgcK2CaoW5Gvhv5dlSzJyy22Cb2CWSkuk1Xv3tFTtGtxs7qBrN6cLPG62ILSGWyAx0PULC8EbbFNs0jGsFWRX0pBD6gWivilbRykLf5YG9TdNoTKwGuYNvV8BP3RuA3aOO6hc1rRRAB4Up6J8nP+udNNF4FmuypMlxZeogBdb6ti/wDT00/fyuYdaxzFlHgHmloY099CGXHitlX608SZNt32pYvM23y8j6WLUh4PM3R5TbPp7wSK8CdHFOswNTvPgMzo2AXZSvwGNfgbpHqv/p27f5VtixWyZTXaW0vnWV1fZ+X+z2OJPVMH9l+gfIgfD01rY7rTVquyxSueAGOG/FFXx+PqFHcDalNBhQMaD5dH6QHY+ReOSoLsp/QsFgzjLIwU33Ct7SXtJA29rXk4gZTYxudluxrgwaXAiuKQZvk/IK2zn8xq1pDgQSAFMwDetu/CxodW1/QUjWgjj/KGoC8pG7Gm7af8lExuIoiv90Oz9WxFoljjtyp4sXmExuBstq/gIqOqBA/FoJrtzyD8qZjjYoi1MdoSnEMa8jj991q54cLB39qpRCQ0fdZ5goB7d1dIEoGOAqxt8WhZDTiFJJIDtYCikeT3BpXS+geESCSnbj/akMW8gV/lEP8A0k0fg2oSd+QEeMGNw6IdPF0V6GNcC0bH5Cxzz2II+Fsx/wDUAN/hES0FbeiaPHBaOD+yMjx27GrCiiIDfZHROBjBsLmKWTZG2AXx+ylbEBe/+VOKrjlbEDVVdlTiKOxg5aatQy+7bPbhGEbECkNLVe9KHEtCW2Ks3VpP/uqh1xpbE5x4VyyQHsJHKq3WY9WM9riCPYpqhfMmbOLLS0UZ8ZcHED/KByMyLG2eRZ5Fp46KmPaGEgilzTxNPPBluja9wrsFt0Q59BLLFFbLbH1jFBH6T334R0OfjSG9QF9r3XIXZuU9pIkII9lkfWeoQS22Ynaq+E28R62mLrLW9NHZnOYWg6zvwhJTXJBVJ6V4kmjhaZ3u0uH3Sfw9Tgla1zXEk+6XlU15GI2J+GT51vZTR/gLnniXGDXvc6KzX6rV+nka4EAkqjeLJGhrw3Yd72TGOtSQtly3BnOZxcruxuli3cRqcXAlyxayPOtbPq7+HOO0+BOlOG9445Ct3k+XJte3sq7/AA6a0/w86QN7/lx/uVcWxh3ItfOM1P17Py/2ejx5v0ofhfo8jBkbYB/K3eCxnHZbuhcyK2bL2N+s08Hb4SmvqQ5b7QB/Lhz/ADA4/SmAqtIN+yKexo3AofahA/qWOQu4aLc3I9b2sBv2pKvcH4WWCN+fpeGi6nauOQrpexQ2b6XC7tENIO5G/wAocNFjfhSB2kb7j4Csog5LZO2rrYH4UgcRVuP4Q4kF3Z+ltdf3bfaIoIE4/UL822n+4fK0dKKH6fwhzJp4G3yonzNJ32PvSvohVk5eNRIcbUbpDfN/BQ7pAbskX7Id8lEeok/aNCsMqwmR49R0gb/SHMu9WAfjdDyZJBcNnAdkK/KjcSQ91jsRSOqw0YoOMhaKurXrJdwSClgmLXtAfYvi1NC97vSARv7rnXpF9bHmO7U4D335TKMEDbsgMSP0NJaP8JrG1oP7pdxZnXy76PWuOkWCVKDZFgf5WCLe7HxuvHPDGGyu4MTb34NyzY0SNuEFOPXW/HKkflgDYoWee9wVDiFqrlsFnIIcKVf6tGDA73/dPJZC4bJR1Mt/li6SvukzRFo1aOioEHWQTe9FV3r3hvH6q00NE4GzhwftWYj+vfNnbZby4of6gDfcrRrm49oPJJ9M4X1Po2Z0rLfFLCdPGrslD4X8M3JPZd7zMDGyozBlwNkb7uCqmf4Fxi7zcBzquy1y1K8uLWpeRCzGknuPgp8GEY+itkI47obp/UDDmuikf6b2IVmz+n5keI6KSB1AchU7LxX48zSWFpB4pFTjNHJOLLiMlphBa4uCpPi3JD6hqiDf0rHizA4TbG4Fql9dlEvVHnkA0pqh82ymRP5NCKgTxZ9liJaAx9uFBYnGzMUT6h/h31KFngLpLHbEQAV+SrzDlwv9Wpo/K4h4SzpovCPT2scGBsW5O/cq2QdfeAGmXjuNrXi87Bn602vqzVxbYyphv6L9HS25kfGo18L12djsvU8g/K53/r5LC3WSfk0o39ZlkGzwK90p/Tt8aD6r+pe/9QZPMIwWkIpuq+x9iOypXh+V8vUHPLtW3tausWoCgT9IEqHF6ZMml/qS7kVuQtaFECiO9r07GnCitHObvexHcKOBVHrQDuC0LZriO5+lDqo726/YKTUbFjUESMDmSl4a6zbftamQ0BbfulC6SnUADfYlQSSsDNiWnjdGUCugp01HTs7/AMqHfltaDpLj7hLsjILTYc6x3H/KWZGa4BxebA/3TFdOy3Q5lzWhwAJDv/Els2cT6iQ3erSd+e1z+GsHxtZQcmY0PJaXAkfYTkaVo7Y7fmvLrLrHu1R/zhkGkHUBxukzJJHOBbZ+QmGLG6R5GxF3uremkW2MotTgxzrs9iNim+NGA/ZoA77IXFx2tjBMfq+U0bC2wQCDW9FBlDZ3MY48mmMHUD+USc0NA37dkglkliBJf6QewQOV1ORsB3IPazWyD6XJ6QN0xl2ywZXW44N3vDR8lAjxBjTP0syGEnagVzjreXkvnIa95sWDaTRQZwyRJ5z2G/egm4YEXHbfZeNcI+x2dmbr/uHvsVhymln6iqL03qGUxgbO/tQJCZf6g5wFvJ2Q/wCm4svqI/lzG+WSdqSzqGUHQFp0n6QEmW8mgTpPyhvOtxbd/ZV1TxLJr2NG0Zb303sAnGNEySIgix7pNGCZ61XRVhwW/wBPbvyuk+JIJkdOD26Qf8hLJMKWNpDQa72rYYge1/KglxGkUBQQXc9l09Ipk0VMLZI7FbilUOsdDgyXmaOKj7911TJwWObtyfhVzOwC0uOnYcdk5RdoFOO+0cxkwDiQSSEEUP2VCyonS5DpDvbrK6v12FuPhzO0C6OxPwueRQf1SOCdvta9U+tiVkdgDenxzCjaxP4sE00HVvsKCxF5gvRH/hvKYPDGGwtsiPg9t0zdlNJ0hpbe4VX6PIR4fxWjkMq/ymQlkEfAJHulMmv/ACSf3F8OX+GH4Q6jleSSOAe5RbcgOeNyPcJDFM9vO59gmXTyZckFwoJKcdIcT2X7wvE0zvkNgUOFdYi7fex9hU/w2wNjP9p9/dWuFxB1EgfIWPkLctlkwu9hwfgqF7m2aIF9iNluC/ay0j3CjcbvULvul1EIiJpOsbEfRW9E2aAo8grUNAk9t6Id3WsjtNkENPt2V4o5sx8180aHI5QE0tl1vJHNcLeeXQ0Aj/CXZEuouNl3wQmq6tnctA+VMQ4lhc35tJ8nIe8uBb/6rRWTIAOOexSt8h1E/sn6q9EciKWV9tbsQO5WMaC7ZwHweFpuTvuioQC5vJv9kfjojmEY0DQbJJKsOFjsoBwA9krxomk0Gk/IKdYmmhpBGnb1d0OSKuQ4xoAyO9JB7d0wZFYG1u+kFjPDSCBRJ7JhDKTW+/CWZXkzJsJkzac3Y/CR9R6A8hzoeFZWvNA80tnSCtxsfdRHyRGyUTmmR0khxE0O4HJQbsJrbBZxvav3U8dkrTQN79lUpYtJc11Hum4TYZT5C17QGbf4ASrqWe/HaC3cD2TnIjJaS0i+FX8/CkmtpND2tFitl1IAb4mljkDaLt7O6teFktnhbL7je1ToujOOQHP9+FZsD+hB5RF/8KZxSOlL6DVgDpdm0bVi6buyjV1aruPYPY/lWTBBaQLFffKRuXRdSGbW2PcrHxEjdSxWRS3cz47eyznsq56YskiqyRt22SXqeO0tuyNlZpYgQd6+Un6g2ozThsOLRK2/ATmcw8Vwf9C9zdxVbKgQwM80bb3X2uo+JIfMwntLQbVI/lQz1ED7W7jN8EAse2EdPga5zWllj291imw6jArsb5WIst7KorPR9ui4ws2G+/ymQ/UQXHhL+jsYeiwEkkhvf7TMMad7KPkf9JfkysT/AIw/CNmDT6mk2TSsXS4CYRK6MAcC0nxMVuRMI2h196VyhwRFjNYxntsVnXtDkWWHoOluONuVZGOaLGqr3rlV7pY8uBo0ivkJtHKACC7b6WTZHZdS7GbXANabPxsvd3B22r/hQRyUQ4En5tENfZJAJ+ygcAimakcEgVfdDSFpJokfe6Le70WSCL/uCClIDyTQHPuiQgQ5AE2rSTyQeyX5Ae6qN+x4TCVw9W2oHexsgpacKYSB9p6uOjnIVZQOk7VR3tLMhtO2NWK2TeeLU2+QCl+RDY3qwm4Fdi3W1pIDjfyi4Jv01vvwl2RHIXlwsUooct0MwMgoe6LrZ2i2Y7iQNhq/2TjDPo09u5Kq3T+pwudu8jvasmFlREgB7TfBBCpKsjY+hFaXenb27o6Mm7s17cpdivY4NaavkbWmUTmfqIoe4FJWcNHJk7C4A73XwvZJDou9vpZXqvVd70o37Agd/cqnFnbQJk5Aa0OLRt3KRZDdcpfGDueQmuVQYQXfhBxM1cDj5RYk70KsjGPLue4SfLga117X2Vwyccvg3AsjmrSDNga12lwaTdbo9Z3MQlmh+o7ErdgeX8UO6O8kHltrZsVtJIFfau47L8wjEADm+nYKw4hAAHCQw1tewHCcYb7AGxKUujtBIyH8BBYBfAU97IPHkr00EQXgbWs2UWmQ+2aSHkVwlOeA6I2mMz6BIO6UZz9UfqO4V61p7ZOykeIf+we0FVBxYW2CPpWHxZkmHDcQNubAVIbnBxADmn6W7iwcopg7ZqPQcJhG43axBTZDC0BpIrusTfpAfWRafCnhvCzfBeDK5rmvcw28HvZTSTwS8C4ZXgEXbhdJz/DuPHd/D/phJBJaaH/qKvLhDJF5cjQR8LNyrJq+en7szMWzVMPwv0cz6T4WlxcwvlIe3j2VgjwCXkkAAH2VgGJHCS03v3JXphjAOmgCkZOUntjnq7FbIfKIqqpEMkN2TsOLK2yWBoskf/qhdZGxNi9r2VeJZSGUcooPGon27Kdjm6Tx9FLGSaTQARDJQSa7e6hw2WUg50gLK9vhDyOpxJuq7LXzLqjSgdIBJTjz7BEhA7kQybg9/tByAadj7g2EU9x+eeChZAXUTsflHS0dsEewbgDdDnEkkYQabfakxERDgD3TCDBE0YJBBBHG6snolz0V6PpUhl4JHehspT4YZkNoxuPzVK6Y/TQBtx8hMYMQRmqNfS71minM5lL4IymgHFe6+KKhHh3rOO4Oa0mvldfZCwghwJKk/loCwXGLVlc2WVzRyOJ/WMQ+qKQVyaKPg6/mxaWyNdt3da6RLiQuPqjab2ohLcjouDMx2uBgJ7qykpBFYn5RXYfEp9Opv5B3RTeuwTPo6rOwQub4bYzUMckH6tJMjEzMLdzSR/3gETjstqL8FofI2fe7B4W0WPYAsqs4fUi2h5gFGtwmX+tsZGCX39KvpFHsZZLmxxlv/wACr+TI1zzRGx5U+V1RksVtfdpVNMS8EEEHe7V4Q0U2eteLIHb8rdri3jYUgg/S/wCftTte51Hv7KzR3IJY+nEnj3R2JL/UAdwOKSrWQOQfhFYswDxv92OEKcQkZFlhl0gOHCnM47HdKoJwWkE7qQzc01Jzq2WUgqScaTbrN8eyT5sx9QJ2U00tbix35SnOnBYTqpWjV0cn2ULx5kRiFjA8Cyubuy/J/Q47lWvxxL/OZbYhRDPnlUmXGyOWNv8Adejw6UqkmYmbktWPRP8A6q4AM8wmx7cLEqnhlbuGOHyQsT3pIz/7cjv3gTOazwV09pJBaD3/APEV0TFzWSM2cDXyuQeFZPL8M4hsigefsq5YXUC2t9N+xXm8yrV0392aWKt48Pwv0XyQB8IeOwvhDOLNAII3+EJhZoMQDnA+26ne5uqjpNpGUQyZBlOaRsf2St7xZGvdMMqQagwOo1xSVzFvAbbl0K9hFMljk3FE/lTxzVZH5N3aWiUagR/svfNAOw2CL6RflsZmWwDzvwtTJ29/jhCMkDgNiTyL4U7DqIohdwLbN22Wu34/dSNx3PLaO3t7KSKI2bbz2R+Njg6dTTfdq7WiHI8x8Frpg4tsBNsfHDGm2t+qXsMLGkUDxVIxjA1pGw32VHIG5HsUbAwemgiA1oOx5CjZZaADwpC7g/hDZxvwTR7crUvOir391qXX32WriKPe/hclsts9c49zYUUjx/8ACo3vod6Q00oazg2e5RIRZaLPJdVOJAS6YMe0xvYNJFUtsjJLbOr45QD8smX0upOQ2E2KOodBbK50kD9JuwOyrGRh9RgDtTHkDbZXsTC+QT7KKSSPyzra0lMJFvUaOeNzXxuIkJJ7AlGw5PmQHS4X7FM+p9MwsiIuawNf7hVKUSdNyac8uYT+oIsYApT2PGvc5pDjXwpYZXN47pUzMEm4FtUrJ26qo2ucEUUtjdsl20UT7LeKRwkF2PcICKTUdTSbRcThJuSQUGUCykN4sjSzc0bUr8j06g+/pLmyEMoi/kqJ851EDYILrL8w2bIBbV2fa0g6rnmHHk3AACmycnSdVcFUrxZ1dzMN0TCNTtvwjU0cpJFbLuEW2Uzrec+fqckl2STylYzHtaTxe60neS8uJJvuhHE0BZr5Xoq69LR5K/IcpNkz8gyPBkftxSxAPcA87rETgKu47V4bcG+G8a99iP3KsMMmloAoEqveHHBvh7GJbuQbs/JTmN+wc479lhZUF6svyz0+G/8Ax4fhfoeY2Y5rw11mxwNk9gzTPBRIGnudvwqhG7Sbu/ZG4+Q9p0iq7lISp7DtFjfLr/8ANXdLpdIBt52PZRNyXbbg33XrnxkbkqFUQmQOdpfqPFUsEjD70tZavb/+qIOoO2ReBZMPYWlzQK3KOh3I/cJTA62hxG4KYQP2aas/KHKBPLQ6xPUASCDXHsmsDQNz/lJ8ZzQNR2KZwv2b3CDKJWUhm3kEBTtIO/7INjgGgNdXwpw8g0ShOJGwhpq9hdrwusAHZRB9OIte67aTSrwO5m7nfK1c/wBnH4UTjbQo3+lo2Hx8KygdzMkcbIJv7S6aQkHUd7U8khFnvdICd9yE8eyYhA5TAZ5D3dZHBQznejUCfZSS/rO9IWR4IPq5/ZHjEvzaNXSHs7dRvnIHANbFRPqzub+0O97gNJ3PyjKJPqHmTK1zDQoj2SDPx/5iM7kfN903c86KKEeCWEWN+yNFA3MqmrKx5PKcXfBpMMWRznC+BySjH4bZHguFu9/ZbQ4Wkjb91LRPNE+NbnWD6Qj4iQSLqwo4oPLaLr6Uv6aKq4kqRKZNNUdq4QU83p5ApbyyNDODt8pZlzgM3G54pVUNsnkaZmY2OL1uFUVzDrea7Lz3kOOjgeysvXMsNjMWvd5qrVRnh1SEh5Ark9lp4tKj2Y/xDJb+SIrkaQDqdXwoHMeSPUUwmgOglzr3UMkH9Mc0TafS0YUnsVSMIJ3+1iNdDsQRfcLFZA2jrPQC0dExwD77fkpyKoEk37LFiw8n/rL8nrsL/wBeH4QU1xrb8FTt9IoknZYsS7QwwljnFoOwocKUF5G9abWLFVoqbgFzwvDFTiTwFixQdvR7Gx4N9kXDYcA0cDusWKrR29jXGlAYaPtdplBK0N0hxJCxYhTSKhscoIaNr+FOJTXNUFixAcUcbB5Lie63DjSxYo0QzC4Vtz9qN5tm9g/AWLFaKIB5txtvugsht0drWLEaJwumbyR/hATDaqq+6xYjRRO2COadVf8AKGeHXYWLEeKIbIZGj9J2NblDvaK7g+6xYiaOPGxjjupwwAWAP/ZYsXEkp/QNwoJJW/po/CxYqkxAZJnAuJfQvb5SfOyWNaQXcDZYsRIJNoicmkyidRm8/KkLzZB2FoJ72+UL/SsWLXgkjzVs222yKmuBstIGy0cNZ/Sd9lixFFSJsZLy0k6hexWLFi44/9k=" alt="Фото Адата" class="size-48 md:size-72 rounded-full object-cover shadow-xl ring-4 ring-rose-500/30">
+    </div>
+  </div>
+</section>
+
+<!-- ОБО МНЕ. py-20 — вертикальные отступы, scroll-mt-16 — чтобы шапка не закрывала заголовок при переходе по якорю -->
+<section id="about" class="py-20 scroll-mt-16 bg-white/60 dark:bg-rose-900/30">
+  <div class="max-w-5xl mx-auto px-6">
+    <h2 class="h2">Обо мне</h2>
+    <div class="mt-8 flex flex-col md:flex-row gap-10">
+      <!-- max-w-prose: удобная для чтения длина строки (~65 символов) -->
+      <p class="max-w-prose md:w-1/2 reveal">
+        Меня зовут Адат. Я недавно начал учить HTML, CSS и JavaScript, и это оказалось реально интересно.
+        Сейчас разбираюсь с Tailwind и стараюсь, чтобы мои сайты нормально выглядели и на телефоне, и на компьютере. Пока получается не идеально, но я стараюсь!
+      </p>
+      <!-- GRID на 3 равные колонки: цифры-факты -->
+      <div class="md:w-1/2 grid grid-cols-3 gap-4 text-center reveal">
+        <div class="card p-3"><p class="text-xl sm:text-3xl font-bold text-rose-600 dark:text-rose-300">1</p><p class="text-xs sm:text-sm">месяц практики</p></div>
+        <div class="card p-3"><p class="text-xl sm:text-3xl font-bold text-rose-600 dark:text-rose-300">1</p><p class="text-xs sm:text-sm">проект</p></div>
+        <div class="card p-3"><p class="text-xl sm:text-3xl font-bold text-rose-600 dark:text-rose-300">70–80%</p><p class="text-xs sm:text-sm">адаптив</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- НАВЫКИ: Grid снаружи (3 группы), Flex внутри (теги с переносом) -->
+<section id="skills" class="py-20 scroll-mt-16">
+  <div class="max-w-5xl mx-auto px-6">
+    <h2 class="h2">Что я умею</h2>
+    <!-- Без префикса — 1 колонка, от md — 3. gap-6 — расстояние между ячейками -->
+    <div class="mt-8 grid md:grid-cols-3 gap-6">
+      <div class="card reveal">
+        <h3 class="font-semibold text-stone-800 dark:text-white">Frontend</h3>
+        <ul class="mt-4 flex flex-wrap gap-2"><li class="pill">HTML5</li><li class="pill">CSS3</li><li class="pill">JavaScript</li><li class="pill">Tailwind</li></ul>
+      </div>
+      <div class="card reveal">
+        <h3 class="font-semibold text-stone-800 dark:text-white">Инструменты</h3>
+        <ul class="mt-4 flex flex-wrap gap-2"><li class="pill">Git</li><li class="pill">GitHub</li><li class="pill">Netlify</li></ul>
+      </div>
+      <div class="card reveal">
+        <h3 class="font-semibold text-stone-800 dark:text-white">Подходы</h3>
+        <ul class="mt-4 flex flex-wrap gap-2"><li class="pill">Mobile-first</li><li class="pill">Доступность</li></ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ПРОЕКТЫ: 1 колонка → 2 (md) → 3 (lg) -->
+<section id="projects" class="py-20 scroll-mt-16 bg-white/60 dark:bg-rose-900/30">
+  <div class="max-w-5xl mx-auto px-6">
+    <h2 class="h2">Мои проекты</h2>
+    <div class="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+
+      <!-- Карточка = flex-col. Блок ссылок с mt-auto прижат к низу, поэтому у всех карточек ссылки на одном уровне.
+           overflow-hidden обрезает углы картинки; hover:-translate-y-1 приподнимает карточку.
+           Новый проект: скопируй этот <article> целиком и поменяй тексты -->
+      <article class="card p-0 overflow-hidden flex flex-col hover:-translate-y-1 hover:shadow-lg transition reveal">
+        <!-- aspect-video фиксирует пропорции 16:9. Здесь вместо скриншота градиент; свой: <img class="aspect-video w-full object-cover"> -->
+        <div class="aspect-video bg-linear-to-br from-rose-300 to-fuchsia-400 grid place-items-center text-5xl">🎧</div>
+        <div class="p-6 flex flex-col flex-1">
+          <h3 class="font-semibold text-stone-800 dark:text-white">Тихая музыка</h3>
+          <p class="mt-2 text-sm">Это мой первый проект! Сайт про тихую и спокойную музыку. Я сделал его сам, было сложно, но очень круто.</p>
+          <ul class="mt-4 flex flex-wrap gap-2"><li class="pill">HTML</li><li class="pill">CSS</li><li class="pill">JavaScript</li><li class="pill">Tailwind</li></ul>
+          <div class="mt-auto pt-6 flex gap-4 text-sm font-medium">
+            <a href="#" class="text-rose-600 dark:text-rose-300 hover:underline">Открыть проект →</a> <!-- ← вставь сюда ссылку на проект вместо # -->
+          </div>
+        </div>
+      </article>
+
+      
+
+    </div>
+  </div>
+</section>
+
+
+
+</main>
+
+<footer class="border-t border-rose-100 dark:border-rose-900 py-8 text-center text-sm text-stone-500 dark:text-rose-300">
+  © <span id="y"></span> Адат
+</footer>
+
+<script>
+const $ = s => document.querySelector(s), root = document.documentElement;
+
+/* Переключатель темы: меняем data-theme и запоминаем выбор */
+function icon(){ $('#theme').textContent = root.dataset.theme === 'dark' ? '☀️' : '🌙'; }
+$('#theme').onclick = () => {
+  const t = root.dataset.theme === 'dark' ? 'light' : 'dark';
+  root.dataset.theme = t;
+  try { localStorage.setItem('theme', t); } catch (e) {}
+  icon();
+};
+icon();
+
+/* Бургер-меню: показываем/прячем и закрываем после клика по ссылке */
+const m = $('#menu'), b = $('#burger');
+b.onclick = () => { m.hidden = !m.hidden; b.setAttribute('aria-expanded', String(!m.hidden)); };
+m.onclick = e => { if (e.target.tagName === 'A') { m.hidden = true; b.setAttribute('aria-expanded', 'false'); } };
+
+/* Год в футере обновляется сам */
+$('#y').textContent = new Date().getFullYear();
+
+/* Плавное появление: когда блок попадает в экран, добавляем класс .show */
+const io = 'IntersectionObserver' in window
+  ? new IntersectionObserver(es => es.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('show'); io.unobserve(e.target); }
+    }), { threshold: .15 })
+  : null;
+document.querySelectorAll('.reveal').forEach(el => io ? io.observe(el) : el.classList.add('show'));
+</script>
+</body>
+</html>
